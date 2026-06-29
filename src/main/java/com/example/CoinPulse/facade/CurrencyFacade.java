@@ -25,13 +25,14 @@ public class CurrencyFacade {
     public CurrencyDTO checkAndLogCurrency(String pair, String alertLevel) {
         SystemTrackerSingleton.getInstance().incrementRequests();
 
-        Map<String, CurrencyDTO> response = currencyClient.getTicker(pair);
+        String normalizedPair = pair.toUpperCase();
+        Map<String, CurrencyDTO> response = currencyClient.getTicker(normalizedPair);
 
-        String key = pair.replace("-", "");
+        String key = normalizedPair.replace("-", "");
         CurrencyDTO data = response.get(key);
 
         if (data != null) {
-            currencyRepository.save(new CurrencyQueryLog(pair, data.bid()));
+            currencyRepository.save(new CurrencyQueryLog(normalizedPair, data.bid()));
             double currentPrice = Double.parseDouble(data.bid());
             alertContext.execute(alertLevel, data.name(), currentPrice);
         }
